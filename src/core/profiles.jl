@@ -1,0 +1,1 @@
+# querying moisture at depths z or over depth intervals [z1, z2]
