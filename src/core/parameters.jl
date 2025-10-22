@@ -1,7 +1,16 @@
 using SoilTwin
 # parameters that describe the soil
 # store soil hydraulic parameters and provide validation and library
-
+"""
+    SoilParameters(θsat::Float64, θres::Float64, α::Float64, n::Float64, Ks::Float64)
+A struct to hold soil hydraulic parameters based on the van Genuchten model.
+# Arguments
+- `θsat::Float64` - saturated volumetric water content (m³/m³)
+- `θres::Float64` - residual volumetric water content (m³/m³)
+- `α::Float64` - van Genuchten parameter (1/m)
+- `n::Float64` - van Genuchten parameter (dimensionless, n > 1)
+- `Ks::Float64` - saturated hydraulic conductivity (m/s)
+"""
 struct SoilParameters
     θsat::Float64
     θres::Float64
