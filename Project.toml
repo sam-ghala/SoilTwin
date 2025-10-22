@@ -2,3 +2,11 @@ name = "SoilTwin"
 uuid = "c725e178-4bf7-485c-98c7-600ef8a668ec"
 authors = ["sam-ghala <ghalayini.sj@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+Interpolations = "0.16.2"
+Test = "1.11.0"
