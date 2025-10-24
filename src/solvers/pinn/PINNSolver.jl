@@ -1,0 +1,85 @@
+struct PINNSolver <: AbstractSoilMoistureSolver
+    architecture::PINNArchitecture
+    max_iters::Int
+    transfer_from::Union{Nothing,String} # path
+    save_model::Bool
+    save_path::Union{Nothing,String} # path
+
+    function PINNSolver(; profile::Symbol = :development,
+                        max_iters::Int = 400,
+                        transfer_from::Union{Nothing,String} = nothing,
+                        save_model::Bool = false,
+                        save_path::Union{Nothing,String} = nothing
+    )
+        if save_model && save_path === nothing
+            throw(ArgumentError("save_path must be provided if save_model is true"))
+        end
+        architecture = get_architecture(profile)
+        return new(architecture, max_iters, transfer_from, save_model, save_path)
+    end
+    # custom architecture constructor
+    function PINNSolver(architecture::PINNArchitecture;
+                        max_iters::Int = 400,
+                        transfer_from::Union{Nothing,String} = nothing,
+                        save_model::Bool = false,
+                        save_path::Union{Nothing,String} = nothing
+    )
+        if save_model && save_path === nothing
+            throw(ArgumentError("save_path must be provided if save_model is true"))    
+        end
+        return new(architecture, max_iters, transfer_from, save_model, save_path)
+    end
+end
+
+function solve(problem::SoilMoistureProblem, solver::PINNSolver)
+    equation, symbolic_vars = setup_richards_equation(problem) # returns eq correctly
+    # next 
+    top_symbolic = to_symbolic(problem.boundary_conditions.top, problem, symbolic_vars, TOP_BOUNDARY)
+    bottom_symbolic = to_symbolic(problem.boundary_conditions.bottom, problem, symbolic_vars, BOTTOM_BOUNDARY)
+    initial_conditions = setup_initial_conditions(problem, symbolic_vars)
+    all_conditions = vcat(top_symbolic, bottom_symbolic, initial_conditions)
+
+    discretization = setup_pinn_network(solver.architecture)
+    pde_problem = assemble_pde_system(equation, all_conditions, symbolic_vars,
+                                    problem,
+                                    discretization
+    )
+    # load from transfer learning if specified
+    trained_result, loss_history = train_pinn(pde_problem, solver.max_iters)
+    solution = wrap_as_moisture_profile(
+        trained_result,
+        discretization,
+        problem.soil_params,
+        problem.depth_range,
+        problem.time_span
+    )
+    print_footer("PINN Solver Complete")
+    return solution
+end
+
+# Example run
+soil = SOIL_LIBRARY["loam"]
+depths = [0.0, 0.5, 1.0]
+moisture_init = [0.25, 0.25, 0.25]
+times = [0.0, 0.0001]
+values = vcat(
+    reshape(moisture_init, 1, 3),
+    reshape(moisture_init, 1, 3)
+)
+
+profile = DiscreteMoistureProfile(depths, times, values; soil_params=soil)
+state = SoilMoistureState(profile)
+
+problem = SoilMoistureProblem(
+    state,
+    soil
+)
+
+solver = PINNSolver(
+    profile = :development,
+    max_iters = 10,
+    save_model = false
+)
+
+println("Attempting to solve with PINN...")
+solution = solve(problem, solver)
