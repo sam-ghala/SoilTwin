@@ -53,7 +53,7 @@ function solve(problem::SoilMoistureProblem, solver::PINNSolver)
         problem.depth_range,
         problem.time_span
     )
-    print_footer("PINN Solver Complete")
+    println("PINN Solver Complete")
     return solution
 end
 
