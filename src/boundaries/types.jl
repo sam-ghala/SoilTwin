@@ -7,7 +7,6 @@ Concrete types must implement:
 """
 abstract type AbstractBoundaryCondition end
 
-# Location markers
 @enum BoundaryLocation begin
     TOP_BOUNDARY
     BOTTOM_BOUNDARY

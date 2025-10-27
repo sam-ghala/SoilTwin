@@ -15,3 +15,12 @@ Water leaves bottom at rate equal to hydraulic conductivity at that depth.
 No capillary rise from below.
 """
 struct FreeDrainage <: AbstractBoundaryCondition end
+
+struct FixedMoisture <: AbstractBoundaryCondition
+    moisture::Float64
+    
+    function FixedMoisture(moisture)
+        @assert 0.0 <= moisture <= 1.0 "Moisture must be in [0,1]"
+        new(moisture)
+    end
+end

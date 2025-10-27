@@ -54,3 +54,37 @@ function setup_initial_conditions(problem, vars)
     
     return ic_expressions
 end
+
+function to_symbolic(bc::DryingSurface, problem, vars, location)
+    @assert location == TOP_BOUNDARY "DryingSurface only valid at top boundary"
+    t_bc = range(problem.time_span[1], problem.time_span[2], length=50)
+    expressions = []
+    duration_val = duration(problem)
+    
+    for ti in t_bc
+        progress = (ti - problem.time_span[1]) / duration_val
+        θ_surface = bc.initial_moisture - bc.drying_rate * progress
+        θ_surface = clamp(
+            θ_surface, 
+            problem.soil_params.θres + 0.001, 
+            problem.soil_params.θsat - 0.001
+        )
+        ψ_surface = θ_to_ψ(θ_surface, problem.soil_params)
+        push!(expressions, vars.ψ(problem.depth_range[1], ti) ~ ψ_surface)
+    end
+    
+    return expressions
+end
+
+function to_symbolic(bc::FixedMoisture, problem, vars, location)
+    t_bc = range(problem.time_span[1], problem.time_span[2], length=50)
+    expressions = []
+    ψ_fixed = θ_to_ψ(bc.moisture, problem.soil_params)
+    z_boundary = location == TOP_BOUNDARY ? problem.depth_range[1] : problem.depth_range[2]
+    
+    for ti in t_bc
+        push!(expressions, vars.ψ(z_boundary, ti) ~ ψ_fixed)
+    end
+    
+    return expressions
+end

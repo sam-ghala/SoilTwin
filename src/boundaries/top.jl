@@ -14,3 +14,14 @@ evap = ConstantFlux(-5e-7)  # Evaporation
 struct ConstantFlux <: AbstractBoundaryCondition
     flux::Float64  # m/s
 end
+
+struct DryingSurface <: AbstractBoundaryCondition
+    initial_moisture::Float64
+    drying_rate::Float64
+    
+    function DryingSurface(initial_moisture, drying_rate)
+        @assert 0.0 <= initial_moisture <= 1.0 "Moisture must be in [0,1]"
+        @assert drying_rate >= 0.0 "Drying rate must be non-negative"
+        new(initial_moisture, drying_rate)
+    end
+end

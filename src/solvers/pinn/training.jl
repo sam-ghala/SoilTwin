@@ -28,3 +28,4 @@ function train_pinn(prob, max_iters::Int)
     res = SciMLBase.solve(prob, opt, callback=callback, maxiters=max_iters)
     return res, loss_history
 end
+

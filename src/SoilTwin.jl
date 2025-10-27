@@ -3,10 +3,16 @@ module SoilTwin
 using Interpolations
 using DifferentialEquations
 using ModelingToolkit
+using Symbolics
 using NeuralPDE
 using Lux
 using LineSearches
 using Optimization, OptimizationOptimJL
+using Statistics
+using Plots
+using BSON
+using BSON: @save, @load
+using ComponentArrays
 
 include("core/parameters.jl")
 include("core/profiles.jl")
@@ -27,6 +33,7 @@ include("solvers/pinn/architectures.jl")
 include("solvers/pinn/training.jl")
 include("solvers/pinn/PINNSolver.jl")
 
+include("utils/visualization.jl")
 include("data/sensors.jl")
 
 export SoilParameters, SOIL_LIBRARY

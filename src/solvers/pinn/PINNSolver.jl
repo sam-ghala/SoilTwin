@@ -44,7 +44,10 @@ function solve(problem::SoilMoistureProblem, solver::PINNSolver)
                                     problem,
                                     discretization
     )
-    # load from transfer learning if specified
+    # remake pde problem if transfering
+    # if !isnothing(transfer_from) && isfile(transfer_from)
+
+    # end
     trained_result, loss_history = train_pinn(pde_problem, solver.max_iters)
     solution = wrap_as_moisture_profile(
         trained_result,
@@ -54,6 +57,18 @@ function solve(problem::SoilMoistureProblem, solver::PINNSolver)
         problem.time_span
     )
     println("PINN Solver Complete")
+    if solver.save_model && trained_result.objective < 10.0
+        # savepath = isnothing(save_path) ? "models/pinn_dev_$(duration(problem)/3600)hr.bson" : "models/pinn_transfer_dev_$(duration(problem)/3600)hr.bson"# change model_name
+        params_to_save = isa(trained_result.u, ComponentArray) ? Vector(trained_result.u) : trained_result.u
+        save_data = Dict(
+            :params => params_to_save,
+            :loss => trained_result.objective,
+            :duration => duration(problem))
+        BSON.@save solver.save_path save_data
+        println("Model saved to $(solver.save_path) ($(length(params_to_save)) parameters)")
+    end
+    # visualize
+    plot_solution(discretization.phi, trained_result, (problem.time_span[2]))
     return solution
 end
 
@@ -66,19 +81,23 @@ values = vcat(
     reshape(moisture_init, 1, 3),
     reshape(moisture_init, 1, 3)
 )
+save_path = "test.bson"
 
 profile = DiscreteMoistureProfile(depths, times, values; soil_params=soil)
 state = SoilMoistureState(profile)
 
 problem = SoilMoistureProblem(
     state,
-    soil
+    soil,
+    top = DryingSurface(0.1775, 0.005),
+    bottom = FixedMoisture(0.24)
 )
 
 solver = PINNSolver(
     profile = :development,
-    max_iters = 10,
-    save_model = false
+    max_iters = 100,
+    save_model = true,
+    save_path = save_path
 )
 
 println("Attempting to solve with PINN...")

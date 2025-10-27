@@ -1,9 +1,5 @@
 # a soil moisture profile will tell me the  moisture at any time and depth within its domain 
 
-# profiles will be made up of
-# a matrix of times and depths, so at i time and j depth we get the moisture value for the 1D profile
-# another way of thinking about it is a timeseries of 1D profiles at each time step
-
 """
     AbstractMoistureProfile
 
