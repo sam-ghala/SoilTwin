@@ -75,7 +75,7 @@ end
 # Example run
 soil = SOIL_LIBRARY["loam"]
 depths = [0.0, 0.5, 1.0]
-moisture_init = [0.25, 0.25, 0.25]
+moisture_init = [0.1775, 0.20 , 0.24]
 times = [0.0, 0.0001]
 values = vcat(
     reshape(moisture_init, 1, 3),
@@ -89,16 +89,73 @@ state = SoilMoistureState(profile)
 problem = SoilMoistureProblem(
     state,
     soil,
-    top = DryingSurface(0.1775, 0.005),
-    bottom = FixedMoisture(0.24)
+    top_bc = DryingSurface(0.1775, 0.005),
+    bottom_bc = FixedMoisture(0.24),
+    time_span = (0.0,600.0)
 )
 
 solver = PINNSolver(
     profile = :development,
     max_iters = 100,
-    save_model = true,
-    save_path = save_path
+    save_model = false,
+    save_path = save_path,
 )
 
 println("Attempting to solve with PINN...")
-solution = solve(problem, solver)
+solution = solve(problem, solver)# Add this to your test script, BEFORE solving
+
+println("\n=== Checking Initial Network Predictions ===")
+
+# Create a minimal test to see what untrained network predicts
+test_discretization = setup_pinn_network(solver.architecture)
+
+# Get the untrained network
+using Random
+Random.seed!(123)
+ps, st = Lux.setup(Random.default_rng(), test_discretization.chain)
+
+# Test a few points
+test_points = [
+    [0.0, 0.0],    # surface, t=0
+    [0.5, 0.0],    # middle, t=0
+    [1.0, 0.0],    # bottom, t=0
+    [0.0, 300.0],  # surface, t=300s
+]
+
+println("Untrained network predictions:")
+for pt in test_points
+    pred = test_discretization.chain(pt, ps, st)[1]
+    ψ_pred = pred[1]
+    ψ_actual = -exp(ψ_pred)
+    
+    println("  z=$(pt[1]), t=$(pt[2]):")
+    println("    ψ_network = $(round(ψ_pred, digits=2))")
+    println("    ψ_actual = $(round(ψ_actual, digits=2))")
+    println("    Is NaN/Inf? $(isnan(ψ_actual) || isinf(ψ_actual))")
+end
+
+# After creating problem, before solving
+println("\n=== Checking BC Values ===")
+
+# What values are we enforcing at surface?
+test_times = [0.0, 300.0, 600.0]
+for t in test_times
+    # DryingSurface formula
+    progress = t / 600.0
+    θ_surface = 0.1775 - 0.005 * progress
+    ψ_surface = θ_to_ψ(θ_surface, soil)
+    
+    println("t=$(t)s: θ=$(round(θ_surface, digits=4)) → ψ=$(round(ψ_surface, digits=2))m")
+end
+
+println("\nBottom BC:")
+ψ_bottom = θ_to_ψ(0.24, soil)
+println("  θ=0.24 → ψ=$(round(ψ_bottom, digits=2))m (constant)")
+
+# Check IC
+println("\nInitial Condition:")
+for z in [0.0, 0.5, 1.0]
+    θ_ic = problem.initial_state.profile(z, 0.0)
+    ψ_ic = θ_to_ψ(θ_ic, soil)
+    println("  z=$(z)m: θ=$(round(θ_ic, digits=4)) → ψ=$(round(ψ_ic, digits=2))m")
+end

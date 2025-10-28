@@ -24,7 +24,7 @@ function minimal_architecture()
         [2, 16, 16, 1],
         tanh,
         500,
-        (pde=4.0, bc=1.0, ic=1.0)
+        (pde=1.0, bc=2.0, ic=2.0)
     )
 end
 
@@ -33,7 +33,7 @@ function development_architecture()
         [2, 32, 32, 32, 1],
         tanh,
         1500,
-        (pde=4.0, bc=1.0, ic=1.0)
+        (pde=1.0, bc=2.0, ic=2.0)
     )
 end
 

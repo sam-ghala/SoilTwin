@@ -18,11 +18,11 @@ struct SoilMoistureProblem
 
     function SoilMoistureProblem(initial_state::SoilMoistureState,
                                     soil_params::SoilParameters; 
-                                    top::AbstractBoundaryCondition = ConstantFlux(0.0),
-                                    bottom::AbstractBoundaryCondition = FreeDrainage(),
+                                    top_bc::AbstractBoundaryCondition = ConstantFlux(0.0),
+                                    bottom_bc::AbstractBoundaryCondition = FreeDrainage(),
                                     time_span::Tuple{Float64, Float64}=(0.0, 3600.0), 
                                     depth_range::Tuple{Float64, Float64}=(0.0, 1.0))
-        bcs = BoundaryConditions(top, bottom)
+        bcs = BoundaryConditions(top_bc, bottom_bc)
         if !(time_span[1] < time_span[2])
             throw(ArgumentError("Invalid time_span: start time must be less than end time"))
         end
