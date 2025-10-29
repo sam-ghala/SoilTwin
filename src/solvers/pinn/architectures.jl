@@ -1,9 +1,11 @@
 struct PINNArchitecture 
+    name::String
     layers::Vector{Int}
     activation::Function
     batch_size::Int
     loss_weights::NamedTuple{(:pde, :bc, :ic), Tuple{Float64, Float64, Float64}}
     function PINNArchitecture(
+        name::String,
         layers::Vector{Int},
         activation::Function,
         batch_size::Int,
@@ -15,12 +17,13 @@ struct PINNArchitecture
         @assert batch_size > 0 "Batch size must be positive"
         # @assert all(loss_weights .>= 0) "Loss weights must be non-negative"
         
-        new(layers, activation, batch_size, loss_weights)
+        new(name, layers, activation, batch_size, loss_weights)
     end
 end
 
 function minimal_architecture()
     return PINNArchitecture(
+        "minimal",
         [2, 16, 16, 1],
         tanh,
         500,
@@ -30,6 +33,7 @@ end
 
 function development_architecture()
     return PINNArchitecture(
+        "development",
         [2, 32, 32, 32, 1],
         tanh,
         1500,

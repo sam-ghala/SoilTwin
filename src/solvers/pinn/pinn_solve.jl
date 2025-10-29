@@ -1,36 +1,3 @@
-struct PINNSolver <: AbstractSoilMoistureSolver
-    architecture::PINNArchitecture
-    max_iters::Int
-    transfer_from::Union{Nothing,String} # path
-    save_model::Bool
-    save_path::Union{Nothing,String} # path
-
-    function PINNSolver(; profile::Symbol = :development,
-                        max_iters::Int = 400,
-                        transfer_from::Union{Nothing,String} = nothing,
-                        save_model::Bool = false,
-                        save_path::Union{Nothing,String} = nothing
-    )
-        if save_model && save_path === nothing
-            throw(ArgumentError("save_path must be provided if save_model is true"))
-        end
-        architecture = get_architecture(profile)
-        return new(architecture, max_iters, transfer_from, save_model, save_path)
-    end
-    # custom architecture constructor
-    function PINNSolver(architecture::PINNArchitecture;
-                        max_iters::Int = 400,
-                        transfer_from::Union{Nothing,String} = nothing,
-                        save_model::Bool = false,
-                        save_path::Union{Nothing,String} = nothing
-    )
-        if save_model && save_path === nothing
-            throw(ArgumentError("save_path must be provided if save_model is true"))    
-        end
-        return new(architecture, max_iters, transfer_from, save_model, save_path)
-    end
-end
-
 function solve(problem::SoilMoistureProblem, solver::PINNSolver)
     equation, symbolic_vars = setup_richards_equation(problem) # returns eq correctly
     # next 
@@ -57,15 +24,20 @@ function solve(problem::SoilMoistureProblem, solver::PINNSolver)
         problem.time_span
     )
     println("PINN Solver Complete")
-    if solver.save_model && trained_result.objective < 10.0
-        # savepath = isnothing(save_path) ? "models/pinn_dev_$(duration(problem)/3600)hr.bson" : "models/pinn_transfer_dev_$(duration(problem)/3600)hr.bson"# change model_name
+    # save model 
+    if solver.save_model # && trained_result.objective < 10.0
+        save_path = isnothing(solver.save_path) ? generate_filename(problem, solver, "models", true) : solver.save_path
         params_to_save = isa(trained_result.u, ComponentArray) ? Vector(trained_result.u) : trained_result.u
         save_data = Dict(
             :params => params_to_save,
             :loss => trained_result.objective,
-            :duration => duration(problem))
-        BSON.@save solver.save_path save_data
-        println("Model saved to $(solver.save_path) ($(length(params_to_save)) parameters)")
+            :duration => duration(problem),
+            :soil_params => problem.soil_params,
+            :architecture => solver.architecture.layers,
+            :timestamp => Dates.now()
+        )
+        BSON.@save save_path save_data
+        println("Model saved to $(save_path) ($(length(params_to_save)) parameters)")
     end
     # visualize
     plot_solution(discretization.phi, trained_result, (problem.time_span[2]))
@@ -81,7 +53,7 @@ values = vcat(
     reshape(moisture_init, 1, 3),
     reshape(moisture_init, 1, 3)
 )
-save_path = "test.bson"
+# save_path = "test.bson"
 
 profile = DiscreteMoistureProfile(depths, times, values; soil_params=soil)
 state = SoilMoistureState(profile)
@@ -96,9 +68,9 @@ problem = SoilMoistureProblem(
 
 solver = PINNSolver(
     profile = :development,
-    max_iters = 100,
-    save_model = false,
-    save_path = save_path,
+    max_iters = 150,
+    save_model = true,
+    # save_path = nothing,
 )
 
 println("Attempting to solve with PINN...")

@@ -1,9 +1,10 @@
 module SoilTwin
 
+using Dates
 using Interpolations
-using DifferentialEquations
+# using DifferentialEquations
 using ModelingToolkit
-using Symbolics
+# using Symbolics
 using NeuralPDE
 using Lux
 using LineSearches
@@ -13,6 +14,7 @@ using Plots
 using BSON
 using BSON: @save, @load
 using ComponentArrays
+# using DataFrames
 
 include("core/parameters.jl")
 include("core/profiles.jl")
@@ -28,12 +30,14 @@ include("core/interface.jl")
 
 include("physics/richards.jl")
 include("physics/vangenuchten.jl")
-
 include("solvers/pinn/architectures.jl")
-include("solvers/pinn/training.jl")
-include("solvers/pinn/PINNSolver.jl")
+include("solvers/pinn/pinn_types.jl")
 
+include("solvers/pinn/training.jl")
 include("utils/visualization.jl")
+include("utils/genereate_filename.jl")
+include("solvers/pinn/pinn_solve.jl")
+
 include("data/sensors.jl")
 
 export SoilParameters, SOIL_LIBRARY

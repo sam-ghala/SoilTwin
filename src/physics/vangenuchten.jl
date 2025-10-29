@@ -1,4 +1,4 @@
-function ψ_to_θ(ψ_val, soil_params::SoilParameters = SoilParameters(0.43, 0.078, 3.6, 1.56, 2.89e-6))
+function ψ_to_θ(ψ_val, soil_params::SoilParameters = SoilParameters("loam",0.43, 0.078, 3.6, 1.56, 2.89e-6))
     θs = soil_params.θsat
     θr = soil_params.θres
     α = soil_params.α
@@ -12,7 +12,7 @@ function ψ_to_θ(ψ_val, soil_params::SoilParameters = SoilParameters(0.43, 0.0
     end
 end
 
-function θ_to_ψ(θ_val, soil_params::SoilParameters = SoilParameters(0.43, 0.078, 3.6, 1.56, 2.89e-6))
+function θ_to_ψ(θ_val, soil_params::SoilParameters = SoilParameters("loam",0.43, 0.078, 3.6, 1.56, 2.89e-6))
     θs = soil_params.θsat
     θr = soil_params.θres
     α = soil_params.α
