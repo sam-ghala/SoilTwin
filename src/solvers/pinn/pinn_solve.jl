@@ -74,4 +74,5 @@ solver = PINNSolver(
 )
 
 println("Attempting to solve with PINN...")
-solution = solve(problem, solver)
+# solution = solve(problem, solver)
+# @time solve(problem, solver)
