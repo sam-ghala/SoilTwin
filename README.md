@@ -7,10 +7,11 @@ A digital twin system for agricultural irrigation management using Physics-Infor
 ## Roadmap
 
 - Physics-Informed Neural Networks for soil moisture prediction
-- Solves Richards equation for variably saturated flow
+- Transfer learning for extended prediction horizons (1-hour to 72-hour forecasts)
 - Multi-station validation framework
 - Integration with International Soil Moisture Network (ISMN) data
 - Irrigation decision support based on crop requirements
+- Weather forecast integration for predictive irrigation scheduling
 
 ## Installation
 
