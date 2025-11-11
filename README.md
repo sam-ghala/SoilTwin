@@ -31,7 +31,7 @@ using SoilTwin
 
 This package implements methodologies for Physics-Informed Neural Networks to solve the Richards equation for soil moisture prediction.
 
-## Key Components
+## Key Components Roadmap
 
 - **Physics Modeling**: Richards equation implementation with PINNs
 - **Data Integration**: ISMN sensor data processing
