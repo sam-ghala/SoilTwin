@@ -38,6 +38,8 @@ include("utils/visualization.jl")
 include("utils/genereate_filename.jl")
 include("solvers/pinn/pinn_solve.jl")
 
+include("num.jl")
+
 include("data/sensors.jl")
 
 export SoilParameters, SOIL_LIBRARY
